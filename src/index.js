@@ -6,25 +6,23 @@ module.exports = function({ types: t }) {
             (t.isIdentifier(node) && (node.name === 'this' || node.name === 'me'));
     }
 
-    function isExtExpression(node) {
-        return t.isIdentifier(node) &&
-            (node.name === 'Ext' || node.name === 'Ext3' || node.name === 'Mxm3');
-    }
-
     function isCallParentCallee(node) {
         return t.isMemberExpression(node) &&
             isThisOrMeExpression(node.object) &&
             t.isIdentifier(node.property, {name: 'callParent'});
     }
 
-    function isExtDefineCallee(node) {
-        return t.isMemberExpression(node) &&
-            isExtExpression(node.object) &&
-            t.isIdentifier(node.property, {name: 'define'});
-    }
-
-    function isExtDefineCall(path) {
-        return path.isCallExpression() && isExtDefineCallee(path.node.callee, t);
+    function isExtDefineCall(extNames) {
+        extNames = extNames || ['Ext'];
+        return function (path) {
+            if (!path.isCallExpression()) {
+                return false;
+            }
+            let callee = path.node.callee;
+            return t.isMemberExpression(callee) &&
+                t.isIdentifier(callee.object) && extNames.includes(callee.object.name) &&
+                t.isIdentifier(callee.property, {name: 'define'});
+        };
     }
 
     function getProtoPropFromObjectExpression(objectExpression) {
@@ -99,11 +97,11 @@ module.exports = function({ types: t }) {
 
     return {
         visitor: {
-            CallExpression(path) {
+            CallExpression(path, state) {
                 if (!isCallParentCallee(path.node.callee)) {
                     return;
                 }
-                const defineCall = path.findParent(isExtDefineCall);
+                const defineCall = path.findParent(isExtDefineCall(state.opts.extNames));
                 if (!defineCall) {
                     return; // throw?
                 }
