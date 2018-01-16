@@ -2,8 +2,7 @@
 module.exports = function({ types: t }) {
 
     function isThisOrMeExpression(node) {
-        return t.isThisExpression(node) ||
-            (t.isIdentifier(node) && (node.name === 'this' || node.name === 'me'));
+        return t.isThisExpression(node) || t.isIdentifier(node, {name: 'me'});
     }
 
     function isCallParentCallee(node) {
