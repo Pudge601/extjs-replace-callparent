@@ -63,7 +63,9 @@ module.exports = function({ types: t }) {
     }
 
     function getOverrideMethodRef(protoRef, methodName, defineCall) {
-        const defineCls    = defineCall.get('arguments.0').node.value;
+        const defineClsNode = defineCall.get('arguments.0').node;
+        t.assertStringLiteral(defineClsNode);
+        const defineCls    = defineClsNode.value;
         const methodRefVar = '_' + (defineCls + '_' + methodName).replace(/\W/g, '_') + '_original';
         defineCall.insertBefore(
             t.variableDeclaration(
