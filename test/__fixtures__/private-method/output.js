@@ -1,9 +1,10 @@
 
 Ext.define('MyApp.MyClass', {
+    extend: 'Ext.panel.Panel',
 
     privates: {
         myMethod: function () {
-            MyApp.MyClass.superclass.myMethod.call(this);
+            Ext.panel.Panel.prototype.myMethod.call(this);
         }
     }
 

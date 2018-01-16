@@ -27,9 +27,41 @@ module.exports = function({ types: t }) {
         return path.isCallExpression() && isExtDefineCallee(path.node.callee, t);
     }
 
-    function getClsName(defineCallNode) {
-        t.assertStringLiteral(defineCallNode.arguments[0]);
-        return defineCallNode.arguments[0].value;
+    function getProtoPropFromObjectExpression(objectExpression) {
+        return objectExpression.properties.find((prop) => {
+            return t.isIdentifier(prop.key) && (prop.key.name === 'extend' || prop.key.name === 'override');
+        });
+    }
+
+    function getFunctionDefineReturnObjectExpression(functionExpression) {
+        let objectExpression = null;
+        functionExpression.traverse({
+            ReturnStatement(path) {
+                if (!path.findParent((p) => p.isFunctionExpression()) === functionExpression) {
+                    return;
+                }
+                path.stop(); // we've found the return statement, stop traversal
+                let returnArg = path.get('argument');
+                if (!returnArg.isObjectExpression()) {
+                    return;
+                }
+                objectExpression = returnArg.node;
+            }
+        });
+        return objectExpression;
+    }
+
+    function getProtoProp(defineCall) {
+        const bodyArg = defineCall.get('arguments.1');
+        if (bodyArg.isObjectExpression()) {
+            return getProtoPropFromObjectExpression(bodyArg.node);
+        } else if (bodyArg.isFunctionExpression()) {
+            let objectExpression = getFunctionDefineReturnObjectExpression(bodyArg);
+            if (!objectExpression) {
+                return;
+            }
+            return getProtoPropFromObjectExpression(objectExpression);
+        }
     }
 
     function isClassMethod(path) {
@@ -43,8 +75,8 @@ module.exports = function({ types: t }) {
         }, null)
     }
 
-    function buildReplacement(clsName, methodName, args) {
-        const memberExpression = buildMethodMemberExpression(clsName + '.superclass.' + methodName + '.' + (args.length ? 'apply' : 'call'));
+    function buildReplacement(methodRef, args) {
+        const memberExpression = buildMethodMemberExpression(methodRef + '.' + (args.length ? 'apply' : 'call'));
         return args.length ? t.callExpression(memberExpression, [t.thisExpression(), args[0]]) :
             t.callExpression(memberExpression, [t.thisExpression()]);
     }
@@ -60,15 +92,19 @@ module.exports = function({ types: t }) {
                     return; // throw?
                 }
 
-                const clsName = getClsName(defineCall.node);
-                const clsMethod = path.findParent(isClassMethod);
+                const protoProp = getProtoProp(defineCall);
+                if (!protoProp) {
+                    return; // throw?
+                }
+                const clsMethod    = path.findParent(isClassMethod);
                 if (!clsMethod) {
                     return; // throw?
                 }
-                const methodName = clsMethod.node.key.name;
+                const protoName = protoProp.value.value;
+                const methodRef = protoName + '.prototype.' + clsMethod.node.key.name;
 
                 const args = path.node.arguments;
-                path.replaceWith(buildReplacement(clsName, methodName, args));
+                path.replaceWith(buildReplacement(methodRef, args));
             }
         }
     };

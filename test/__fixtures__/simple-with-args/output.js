@@ -1,8 +1,9 @@
 
 Ext.define('MyApp.MyClass', {
+    extend: 'Ext.panel.Panel',
 
     myMethod: function () {
-        MyApp.MyClass.superclass.myMethod.apply(this, arguments);
+        Ext.panel.Panel.prototype.myMethod.apply(this, arguments);
     }
 
 });
