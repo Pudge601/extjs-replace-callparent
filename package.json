@@ -1,0 +1,14 @@
+{
+  "name": "replace-call-parent",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest test/index.js"
+  },
+  "devDependencies": {
+    "babel-core": "^6.21.0",
+    "babel-plugin-tester": "^5.0.0",
+    "jest": "^22.1.1"
+  },
+  "dependencies": {}
+}
