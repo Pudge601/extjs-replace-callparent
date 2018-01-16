@@ -62,15 +62,16 @@ module.exports = function({ types: t }) {
         }
     }
 
-    function getOverrideMethodRef(protoName, methodName, defineCall) {
-        const methodRefVar = '_' + (protoName + '_' + methodName).replace(/\W/g, '_');
+    function getOverrideMethodRef(protoRef, methodName, defineCall) {
+        const defineCls    = defineCall.get('arguments.0').node.value;
+        const methodRefVar = '_' + (defineCls + '_' + methodName).replace(/\W/g, '_') + '_original';
         defineCall.insertBefore(
             t.variableDeclaration(
                 'var',
                 [
                     t.variableDeclarator(
                         t.identifier(methodRefVar),
-                        buildMethodRef(protoName, methodName)
+                        buildMethodRef(protoRef, methodName)
                     )
                 ]
             )
@@ -83,18 +84,18 @@ module.exports = function({ types: t }) {
             t.isFunction(path.node.value);
     }
 
-    function buildMemberExpression(methodRef) {
-        return methodRef.split('.').reduce((last, next) => {
+    function buildMemberExpression(stringRef) {
+        return stringRef.split('.').reduce((last, next) => {
             return last ? t.memberExpression(last, t.identifier(next)) : t.identifier(next);
-        }, null)
+        }, null);
     }
 
-    function buildMethodRef(protoName, methodName) {
+    function buildMethodRef(protoRef, methodName) {
         return t.memberExpression(
             t.logicalExpression(
                 '||',
-                buildMemberExpression(protoName + '.prototype'),
-                buildMemberExpression(protoName)
+                t.memberExpression(protoRef, t.identifier('prototype')),
+                protoRef
             ),
             t.identifier(methodName)
         );
@@ -104,6 +105,13 @@ module.exports = function({ types: t }) {
         const memberExpression = t.memberExpression(methodRef, t.identifier(args.length ? 'apply' : 'call'));
         return args.length ? t.callExpression(memberExpression, [t.thisExpression(), args[0]]) :
             t.callExpression(memberExpression, [t.thisExpression()]);
+    }
+
+    function getProtoRef(protoProp) {
+        if (!protoProp) {
+            return buildMemberExpression('Ext.Base');
+        }
+        return t.isStringLiteral(protoProp.value) ? buildMemberExpression(protoProp.value.value) : protoProp.value;
     }
 
     return {
@@ -125,12 +133,12 @@ module.exports = function({ types: t }) {
 
                 const protoProp  = getProtoProp(defineCall);
                 const isOverride = protoProp && protoProp.key.name === 'override';
-                const protoName  = protoProp ? protoProp.value.value : 'Ext.Base';
+                const protoRef   = getProtoRef(protoProp);
                 let methodRef;
                 if (isOverride) {
-                    methodRef = getOverrideMethodRef(protoName, methodName, defineCall);
+                    methodRef = getOverrideMethodRef(protoRef, methodName, defineCall);
                 } else {
-                    methodRef = buildMethodRef(protoName, methodName);
+                    methodRef = buildMethodRef(protoRef, methodName);
                 }
 
                 const args = path.node.arguments;
