@@ -110,18 +110,16 @@ module.exports = function({ types: t }) {
                     return; // throw?
                 }
 
-                const protoProp = getProtoProp(defineCall);
-                if (!protoProp) {
-                    return; // throw?
-                }
                 const clsMethod    = path.findParent(isClassMethod);
                 if (!clsMethod) {
                     return; // throw?
                 }
-                const protoName  = protoProp.value.value;
                 const methodName = clsMethod.node.key.name;
+
+                const protoProp = getProtoProp(defineCall);
+                const protoName  = protoProp ? protoProp.value.value : 'Ext.Base';
                 let methodRef = protoName + '.prototype.' + methodName;
-                if (protoProp.key.name === 'override') {
+                if (protoProp && protoProp.key.name === 'override') {
                     methodRef = getOverrideMethodRef(protoName, methodName, defineCall);
                 }
 
