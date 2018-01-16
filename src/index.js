@@ -62,15 +62,19 @@ module.exports = function({ types: t }) {
         }
     }
 
-    function getOverrideMethodRef(methodRef, defineCall) {
-        const methodRefVar = '_' + methodRef.replace(/\W/g, '_');
+    function getOverrideMethodRef(protoName, methodName, defineCall) {
+        const methodRefVar = '_' + (protoName + '_' + methodName).replace(/\W/g, '_');
         defineCall.insertBefore(
             t.variableDeclaration(
                 'var',
                 [
                     t.variableDeclarator(
                         t.identifier(methodRefVar),
-                        buildMethodMemberExpression(methodRef)
+                        t.conditionalExpression(
+                            buildMemberExpression(protoName + '.prototype'),
+                            buildMemberExpression(protoName + '.prototype.' + methodName),
+                            buildMemberExpression(protoName + '.' + methodName)
+                        )
                     )
                 ]
             )
@@ -83,14 +87,14 @@ module.exports = function({ types: t }) {
             t.isFunction(path.node.value);
     }
 
-    function buildMethodMemberExpression(methodRef) {
+    function buildMemberExpression(methodRef) {
         return methodRef.split('.').reduce((last, next) => {
             return last ? t.memberExpression(last, t.identifier(next)) : t.identifier(next);
         }, null)
     }
 
     function buildReplacement(methodRef, args) {
-        const memberExpression = buildMethodMemberExpression(methodRef + '.' + (args.length ? 'apply' : 'call'));
+        const memberExpression = buildMemberExpression(methodRef + '.' + (args.length ? 'apply' : 'call'));
         return args.length ? t.callExpression(memberExpression, [t.thisExpression(), args[0]]) :
             t.callExpression(memberExpression, [t.thisExpression()]);
     }
@@ -114,10 +118,11 @@ module.exports = function({ types: t }) {
                 if (!clsMethod) {
                     return; // throw?
                 }
-                const protoName = protoProp.value.value;
-                let methodRef = protoName + '.prototype.' + clsMethod.node.key.name;
+                const protoName  = protoProp.value.value;
+                const methodName = clsMethod.node.key.name;
+                let methodRef = protoName + '.prototype.' + methodName;
                 if (protoProp.key.name === 'override') {
-                    methodRef = getOverrideMethodRef(methodRef, defineCall);
+                    methodRef = getOverrideMethodRef(protoName, methodName, defineCall);
                 }
 
                 const args = path.node.arguments;
