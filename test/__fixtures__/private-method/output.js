@@ -4,7 +4,7 @@ Ext.define('MyApp.MyClass', {
 
     privates: {
         myMethod: function () {
-            Ext.panel.Panel.prototype.myMethod.call(this);
+            (Ext.panel.Panel.prototype || Ext.panel.Panel).myMethod.call(this);
         }
     }
 

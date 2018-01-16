@@ -70,16 +70,12 @@ module.exports = function({ types: t }) {
                 [
                     t.variableDeclarator(
                         t.identifier(methodRefVar),
-                        t.conditionalExpression(
-                            buildMemberExpression(protoName + '.prototype'),
-                            buildMemberExpression(protoName + '.prototype.' + methodName),
-                            buildMemberExpression(protoName + '.' + methodName)
-                        )
+                        buildMethodRef(protoName, methodName)
                     )
                 ]
             )
         );
-        return methodRefVar;
+        return t.identifier(methodRefVar);
     }
 
     function isClassMethod(path) {
@@ -93,8 +89,19 @@ module.exports = function({ types: t }) {
         }, null)
     }
 
+    function buildMethodRef(protoName, methodName) {
+        return t.memberExpression(
+            t.logicalExpression(
+                '||',
+                buildMemberExpression(protoName + '.prototype'),
+                buildMemberExpression(protoName)
+            ),
+            t.identifier(methodName)
+        );
+    }
+
     function buildReplacement(methodRef, args) {
-        const memberExpression = buildMemberExpression(methodRef + '.' + (args.length ? 'apply' : 'call'));
+        const memberExpression = t.memberExpression(methodRef, t.identifier(args.length ? 'apply' : 'call'));
         return args.length ? t.callExpression(memberExpression, [t.thisExpression(), args[0]]) :
             t.callExpression(memberExpression, [t.thisExpression()]);
     }
@@ -116,11 +123,14 @@ module.exports = function({ types: t }) {
                 }
                 const methodName = clsMethod.node.key.name;
 
-                const protoProp = getProtoProp(defineCall);
+                const protoProp  = getProtoProp(defineCall);
+                const isOverride = protoProp && protoProp.key.name === 'override';
                 const protoName  = protoProp ? protoProp.value.value : 'Ext.Base';
-                let methodRef = protoName + '.prototype.' + methodName;
-                if (protoProp && protoProp.key.name === 'override') {
+                let methodRef;
+                if (isOverride) {
                     methodRef = getOverrideMethodRef(protoName, methodName, defineCall);
+                } else {
+                    methodRef = buildMethodRef(protoName, methodName);
                 }
 
                 const args = path.node.arguments;

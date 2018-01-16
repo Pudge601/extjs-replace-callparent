@@ -2,7 +2,7 @@
 Ext.define('MyApp.MyClass', {
 
     myMethod: function () {
-        Ext.Base.prototype.myMethod.call(this);
+        (Ext.Base.prototype || Ext.Base).myMethod.call(this);
     }
 
 });
