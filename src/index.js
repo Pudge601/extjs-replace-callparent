@@ -64,6 +64,22 @@ module.exports = function({ types: t }) {
         }
     }
 
+    function getOverrideMethodRef(methodRef, defineCall) {
+        const methodRefVar = '_' + methodRef.replace(/\W/g, '_');
+        defineCall.insertBefore(
+            t.variableDeclaration(
+                'var',
+                [
+                    t.variableDeclarator(
+                        t.identifier(methodRefVar),
+                        buildMethodMemberExpression(methodRef)
+                    )
+                ]
+            )
+        );
+        return methodRefVar;
+    }
+
     function isClassMethod(path) {
         return path.isObjectProperty() &&
             t.isFunction(path.node.value);
@@ -101,7 +117,10 @@ module.exports = function({ types: t }) {
                     return; // throw?
                 }
                 const protoName = protoProp.value.value;
-                const methodRef = protoName + '.prototype.' + clsMethod.node.key.name;
+                let methodRef = protoName + '.prototype.' + clsMethod.node.key.name;
+                if (protoProp.key.name === 'override') {
+                    methodRef = getOverrideMethodRef(methodRef, defineCall);
+                }
 
                 const args = path.node.arguments;
                 path.replaceWith(buildReplacement(methodRef, args));
