@@ -1,5 +1,5 @@
 
-module.exports = function({ types: t }) {
+export default function({ types: t }) {
 
     function isThisOrMeExpression(node) {
         return t.isThisExpression(node) || t.isIdentifier(node, {name: 'me'});

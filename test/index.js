@@ -1,7 +1,6 @@
 
-const path = require('path');
-const PluginTester = require('babel-plugin-tester');
-const ReplaceCallParentPlugin  = require('../src/index');
+import PluginTester from 'babel-plugin-tester';
+import ReplaceCallParentPlugin from '../lib/index';
 
 PluginTester({
     plugin: ReplaceCallParentPlugin,
