@@ -30,22 +30,24 @@ export default function({ types: t }) {
         });
     }
 
-    function getFunctionDefineReturnObjectExpression(functionExpression) {
-        let objectExpression = null;
-        functionExpression.traverse({
-            ReturnStatement(path) {
-                if (!path.findParent((p) => p.isFunctionExpression()) === functionExpression) {
-                    return;
-                }
-                path.stop(); // we've found the return statement, stop traversal
-                let returnArg = path.get('argument');
-                if (!returnArg.isObjectExpression()) {
-                    return;
-                }
-                objectExpression = returnArg.node;
+    const returnStatementVisitor = {
+        ReturnStatement(path) {
+            if (!path.findParent((p) => p.isFunctionExpression()) === this.functionExpression) {
+                return;
             }
-        });
-        return objectExpression;
+            path.stop(); // we've found the return statement, stop traversal
+            let returnArg = path.get('argument');
+            if (!returnArg.isObjectExpression()) {
+                return;
+            }
+            this.returnArg = returnArg.node;
+        }
+    };
+
+    function getFunctionDefineReturnObjectExpression(functionExpression) {
+        let nestedVisitorState = { functionExpression, returnArg: null };
+        functionExpression.traverse(returnStatementVisitor, nestedVisitorState);
+        return nestedVisitorState.returnArg;
     }
 
     function getProtoProp(defineCall) {
