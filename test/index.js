@@ -4,7 +4,7 @@ import ReplaceCallParentPlugin from '../lib/index';
 
 PluginTester({
     plugin: ReplaceCallParentPlugin,
-    pluginName: 'replace-call-parent',
+    pluginName: 'extjs-replace-callparent',
     filename: __filename,
     fixtures: '__fixtures__'
 });
