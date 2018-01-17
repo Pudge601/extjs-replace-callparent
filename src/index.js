@@ -122,12 +122,12 @@ export default function({ types: t }) {
                 }
                 const defineCall = path.findParent(isExtDefineCall(state.opts.extNames));
                 if (!defineCall) {
-                    return; // throw?
+                    throw path.buildCodeFrameError("Unable to find 'Ext.define' for this 'callParent'");
                 }
 
-                const clsMethod    = path.findParent(isClassMethod);
+                const clsMethod = path.findParent(isClassMethod);
                 if (!clsMethod) {
-                    return; // throw?
+                    throw path.buildCodeFrameError("Unable to find method declaration for this 'callParent'");
                 }
                 const methodName = clsMethod.node.key.name;
 
