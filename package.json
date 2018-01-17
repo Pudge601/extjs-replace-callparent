@@ -7,6 +7,10 @@
     "build": "babel -d ./lib ./src",
     "test": "jest test/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pudge601/extjs-replace-callparent"
+  },
   "keywords": [
     "babel",
     "babel-plugin",
@@ -16,6 +20,7 @@
   ],
   "author": "Martin Price <martin.price@emailcenteruk.com>",
   "license": "LGPL-3.0",
+  "homepage": "https://github.com/Pudge601/extjs-replace-callparent",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.21.0",
