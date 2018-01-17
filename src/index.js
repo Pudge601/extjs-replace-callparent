@@ -63,7 +63,7 @@ export default function({ types: t }) {
         }
     }
 
-    function getOverrideMethodRef(protoRef, methodName, defineCall) {
+    function getOverrideMethodRef(methodRef, defineCall) {
         const methodRefVar = defineCall.scope.generateUidIdentifier('o');
         defineCall.insertBefore(
             t.variableDeclaration(
@@ -71,7 +71,7 @@ export default function({ types: t }) {
                 [
                     t.variableDeclarator(
                         methodRefVar,
-                        buildMethodRef(protoRef, methodName)
+                        methodRef
                     )
                 ]
             )
@@ -134,11 +134,9 @@ export default function({ types: t }) {
                 const protoProp  = getProtoProp(defineCall);
                 const isOverride = protoProp && protoProp.key.name === 'override';
                 const protoRef   = getProtoRef(protoProp);
-                let methodRef;
+                let methodRef = buildMethodRef(protoRef, methodName);
                 if (isOverride) {
-                    methodRef = getOverrideMethodRef(protoRef, methodName, defineCall);
-                } else {
-                    methodRef = buildMethodRef(protoRef, methodName);
+                    methodRef = getOverrideMethodRef(methodRef, defineCall);
                 }
 
                 const args = path.node.arguments;
