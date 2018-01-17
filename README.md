@@ -46,6 +46,13 @@ Ext.define('MyClass', {
 });
 ```
 
+
+## Installation
+
+```sh
+$ npm install --save-dev extjs-replace-callparent
+```
+
 ## Rationale
 
 The main goal of this plugin is to allow for Ext JS code to be written in ES2016 (and transpiled for the browser).
