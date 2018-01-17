@@ -62,22 +62,19 @@ export default function({ types: t }) {
     }
 
     function getOverrideMethodRef(protoRef, methodName, defineCall) {
-        const defineClsNode = defineCall.get('arguments.0').node;
-        t.assertStringLiteral(defineClsNode);
-        const defineCls    = defineClsNode.value;
-        const methodRefVar = '_' + (defineCls + '_' + methodName).replace(/\W/g, '_') + '_original';
+        const methodRefVar = defineCall.scope.generateUidIdentifier('o');
         defineCall.insertBefore(
             t.variableDeclaration(
                 'var',
                 [
                     t.variableDeclarator(
-                        t.identifier(methodRefVar),
+                        methodRefVar,
                         buildMethodRef(protoRef, methodName)
                     )
                 ]
             )
         );
-        return t.identifier(methodRefVar);
+        return methodRefVar;
     }
 
     function isClassMethod(path) {
