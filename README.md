@@ -53,6 +53,16 @@ Ext.define('Override.OtherClass', {
 $ npm install --save-dev extjs-replace-callparent
 ```
 
+## Usage
+
+### Via `.babelrc`
+
+```json
+{
+  "plugins": ["extjs-replace-callparent"]
+}
+```
+
 ## Rationale
 
 The main goal of this plugin is to allow for Ext JS code to be written in ES2016 (and transpiled for the browser).
