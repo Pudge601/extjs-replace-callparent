@@ -37,10 +37,10 @@ Ext.define('Override.OtherClass', {
 
 // After
 var _o = (OtherClass.prototype || OtherClass).method;
-Ext.define('MyClass', {
-    extend: 'OtherClass',
+Ext.define('Override.OtherClass', {
+    override: 'OtherClass',
     
-    constructor: function() {
+    method: function() {
         _o.call(this);
     }    
 });
