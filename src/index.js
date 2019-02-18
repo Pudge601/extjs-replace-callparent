@@ -80,8 +80,8 @@ export default function({ types: t }) {
     }
 
     function isClassMethod(path) {
-        return path.isObjectProperty() &&
-            t.isFunction(path.node.value);
+        return (path.isObjectProperty() && t.isFunction(path.node.value)) ||
+            path.isObjectMethod();
     }
 
     function buildMemberExpression(stringRef) {
