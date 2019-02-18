@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "babel -d ./lib ./src",
-    "test": "jest test/index.js"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
     "babel-core": "^6.21.0",
     "babel-plugin-tester": "^5.0.0",
     "babel-preset-es2015": "^6.24.1",
-    "jest": "^22.1.1"
+    "jest": "^23"
   },
   "dependencies": {}
 }
