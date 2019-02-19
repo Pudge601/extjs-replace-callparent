@@ -9,7 +9,7 @@
   "scripts": {
     "build": "babel -d ./lib ./src",
     "test": "jest",
-    "preversion": "yarn test"
+    "preversion": "yarn build && yarn test"
   },
   "repository": {
     "type": "git",
