@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "babel -d ./lib ./src",
-    "test": "jest"
+    "test": "jest",
+    "preversion": "yarn test"
   },
   "repository": {
     "type": "git",
