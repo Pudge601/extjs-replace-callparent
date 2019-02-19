@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2019-02-19
+### Fixed
+- Switch to whitelisting files instead of using .npmignore to exclude files from package
+
 ## [0.2.0] - 2019-02-19
 ### Added
 - Added support for ObjectMethod syntax
