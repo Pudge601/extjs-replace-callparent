@@ -1,5 +1,9 @@
 # extjs-replace-callparent
 
+[![Build Status](https://img.shields.io/travis/com/Pudge601/extjs-replace-callparent.svg?style=flat)](https://travis-ci.com/Pudge601/extjs-replace-callparent)
+[![Latest Stable Version](https://img.shields.io/npm/v/extjs-replace-callparent.svg?style=flat)](https://www.npmjs.com/package/extjs-replace-callparent)
+[![Total Downloads](https://img.shields.io/npm/dt/extjs-replace-callparent.svg?style=flat)](https://www.npmjs.com/package/extjs-replace-callparent)
+
 Babel plugin to replace Ext JS `callParent` calls with direct method calls on parent class.
 
 ## Examples
