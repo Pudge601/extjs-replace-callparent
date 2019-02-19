@@ -3,6 +3,9 @@
   "version": "0.2.0",
   "description": "Replace Ext JS `callParent` calls with direct method calls on parent class",
   "main": "lib/index.js",
+  "files": [
+    "/lib"
+  ],
   "scripts": {
     "build": "babel -d ./lib ./src",
     "test": "jest",
