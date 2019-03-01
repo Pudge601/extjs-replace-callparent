@@ -1,17 +1,17 @@
 
-export default function({ types: t }) {
+export default function ({ types: t }) {
 
     function isThisOrMeExpression(node) {
-        return t.isThisExpression(node) || t.isIdentifier(node, {name: 'me'});
+        return t.isThisExpression(node) || t.isIdentifier(node, { name: 'me' });
     }
 
     function isCallParentCallee(node) {
         return t.isMemberExpression(node) &&
             isThisOrMeExpression(node.object) &&
-            t.isIdentifier(node.property, {name: 'callParent'});
+            t.isIdentifier(node.property, { name: 'callParent' });
     }
 
-    function isExtDefineCall(extNames) {
+    function isMethodCall(methodName, extNames) {
         extNames = extNames || ['Ext'];
         return function (path) {
             if (!path.isCallExpression()) {
@@ -20,14 +20,26 @@ export default function({ types: t }) {
             let callee = path.node.callee;
             return t.isMemberExpression(callee) &&
                 t.isIdentifier(callee.object) && extNames.includes(callee.object.name) &&
-                t.isIdentifier(callee.property, {name: 'define'});
+                t.isIdentifier(callee.property, { name: methodName });
         };
+    }
+
+    function isExtDefineCall(extNames) {
+        return isMethodCall('define', extNames);
+    }
+
+    function isExtOverrideCall(extNames) {
+        return isMethodCall('override', extNames);
     }
 
     function getProtoPropFromObjectExpression(objectExpression) {
         return objectExpression.properties.find((prop) => {
             return t.isIdentifier(prop.key) && (prop.key.name === 'extend' || prop.key.name === 'override');
         });
+    }
+
+    function getProtoPropStringLiteral(stringLiteral) {
+        return stringLiteral.node;
     }
 
     const returnStatementVisitor = {
@@ -50,8 +62,8 @@ export default function({ types: t }) {
         return nestedVisitorState.returnArg;
     }
 
-    function getProtoProp(defineCall) {
-        const bodyArg = defineCall.get('arguments.1');
+    function getProtoProp({ defineCall, overrideCall }) {
+        const bodyArg = defineCall ? defineCall.get('arguments.1') : overrideCall.get('arguments.0');
         if (bodyArg.isObjectExpression()) {
             return getProtoPropFromObjectExpression(bodyArg.node);
         } else if (bodyArg.isFunctionExpression()) {
@@ -60,10 +72,12 @@ export default function({ types: t }) {
                 return;
             }
             return getProtoPropFromObjectExpression(objectExpression);
+        } else if (bodyArg.isStringLiteral()) {
+            return getProtoPropStringLiteral(bodyArg);
         }
     }
 
-    function getOverrideMethodRef(methodRef, defineCall) {
+    function getDefineOverrideMethodRef(methodRef, defineCall) {
         const methodRefVar = defineCall.scope.generateUidIdentifier('o');
         defineCall.insertBefore(
             t.variableDeclaration(
@@ -111,6 +125,10 @@ export default function({ types: t }) {
         if (!protoProp) {
             return buildMemberExpression('Ext.Base');
         }
+
+        if (t.isStringLiteral(protoProp))
+            return buildMemberExpression(protoProp.value);
+
         return t.isStringLiteral(protoProp.value) ? buildMemberExpression(protoProp.value.value) : protoProp.value;
     }
 
@@ -120,9 +138,10 @@ export default function({ types: t }) {
                 if (!isCallParentCallee(path.node.callee)) {
                     return;
                 }
-                const defineCall = path.findParent(isExtDefineCall(state.opts.extNames));
-                if (!defineCall) {
-                    throw path.buildCodeFrameError("Unable to find 'Ext.define' for this 'callParent'");
+                const defineCall = path.findParent(isExtDefineCall(state.opts.extNames))
+                const overrideCall = path.findParent(isExtOverrideCall(state.opts.extNames));
+                if (!defineCall && !overrideCall) {
+                    throw path.buildCodeFrameError("Unable to find 'Ext.define' or 'Ext.override for this 'callParent'");
                 }
 
                 const clsMethod = path.findParent(isClassMethod);
@@ -131,12 +150,13 @@ export default function({ types: t }) {
                 }
                 const methodName = clsMethod.node.key.name;
 
-                const protoProp  = getProtoProp(defineCall);
-                const isOverride = protoProp && protoProp.key.name === 'override';
-                const protoRef   = getProtoRef(protoProp);
+                const protoProp = getProtoProp({ defineCall, overrideCall });
+                const isDefineOverride = protoProp && protoProp.key && protoProp.key.name === 'override';
+                const protoRef = getProtoRef(protoProp);
+
                 let methodRef = buildMethodRef(protoRef, methodName);
-                if (isOverride) {
-                    methodRef = getOverrideMethodRef(methodRef, defineCall);
+                if (isDefineOverride) {
+                    methodRef = getDefineOverrideMethodRef(methodRef, defineCall);
                 }
 
                 const args = path.node.arguments;
@@ -145,4 +165,3 @@ export default function({ types: t }) {
         }
     };
 };
-
