@@ -60,9 +60,10 @@ Ext.override('OtherClass', {
 
 
 // After
+var _o = (OtherClass.prototype || OtherClass).myMethod;
 Ext.override('OtherClass', {
     myMethod: function () {
-        (OtherClass.prototype || OtherClass).myMethod.call(this);
+        _o.call(this);
     }
 });
 ```

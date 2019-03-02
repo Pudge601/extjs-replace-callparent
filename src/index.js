@@ -155,8 +155,8 @@ export default function ({ types: t }) {
                 const protoRef = getProtoRef(protoProp);
 
                 let methodRef = buildMethodRef(protoRef, methodName);
-                if (isDefineOverride) {
-                    methodRef = getDefineOverrideMethodRef(methodRef, defineCall);
+                if (overrideCall || isDefineOverride) {
+                    methodRef = getDefineOverrideMethodRef(methodRef, (defineCall || overrideCall));
                 }
 
                 const args = path.node.arguments;
