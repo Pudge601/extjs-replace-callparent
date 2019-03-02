@@ -50,6 +50,24 @@ Ext.define('Override.OtherClass', {
 });
 ```
 
+```javascript
+// Before
+Ext.override('OtherClass', {
+    myMethod: function () {
+        this.callParent();
+    }
+});
+
+
+// After
+var _o = (OtherClass.prototype || OtherClass).myMethod;
+Ext.override('OtherClass', {
+    myMethod: function () {
+        _o.call(this);
+    }
+});
+```
+
 
 ## Installation
 
