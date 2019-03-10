@@ -1,6 +1,6 @@
 {
   "name": "extjs-replace-callparent",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Replace Ext JS `callParent` calls with direct method calls on parent class",
   "main": "lib/index.js",
   "files": [
